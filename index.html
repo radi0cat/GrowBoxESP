@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+    <html>
+    <head>  
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'/>            
+        <title>Control Panel ESP32</title>
+        <link rel="stylesheet" href="styles.css" type="text/css">
+    </head>  
+    <body>
+        <header class="fixed-top">
+                <div class="navtitle">Growbox Control</div>
+                <div class="navdata_date">
+                    <span id='day'>dd</span>/<span id='month'>mm</span>/<span id='year'>yyyy</span></div>
+                <div class="navdata_time">
+                    <span id='hours'>00</span>:<span id='minutes'>00</span>:<span id='seconds'>00</span>
+                </div>
+                <hr><br>
+        </header>
+        <center>
+            <div class='category'>Sensor Readings</div>  
+                <div class='data'>Temperature: <span id='temp'>--.-</span> &deg;C</div>  
+                <div class='data'>Humidity: <span id='humi'>--.-</span> %</div>
+            <br>    
+            <div class='category' id='stage_title'>Growth Stage</div>
+            <form action='/' id="formId" accept-charset="utf-8" name="changes" method="POST" >
+                <div class="btn-group">
+                    <div class="data">Seedling/Cloning
+                      <label class="switch">
+                        <input type="radio" name="stage" id="stage0" value="Seedling/Cloning">
+                        <span class="slider round"></span>
+                      </label>
+                    </div>
+                    <div class="data">Vegetation
+                      <label class="switch">
+                        <input type="radio" name="stage" id="stage1" value="Vegetation">
+                        <span class="slider round"></span>
+                      </label>
+                    </div>
+                    <div class="data">Pre-Flowering
+                      <label class="switch">
+                        <input type="radio" name="stage" id="stage2" value="Pre-Flowering">
+                        <span class="slider round"></span>
+                      </label>
+                    </div>
+                    <div class="data">Flowering
+                      <label class="switch">
+                        <input type="radio" name="stage" id="stage3" value="Flowering">
+                        <span class="slider round"></span>
+                      </label>
+                    </div>
+                </div><br>
+            <div class='category' id='water'>Watering per Day</div>
+                <div class="btn-group">
+                    <div class="data">0
+                        <label class="switch">
+                            <input type="radio" name="watering" id="cycle0" value="0">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="data">1
+                        <label class="switch">
+                            <input type="radio" name="watering" id="cycle1" value="1">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="data">2
+                        <label class="switch">
+                            <input type="radio" name="watering" id="cycle2" value="2">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                    <div class="data">3
+                        <label class="switch">
+                            <input type="radio" name="watering" id="cycle3" value="3">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <input type="submit">
+            </form>
+        </center><br> 
+        <script src="script.js"></script> 
+    </body>       
+</html>
+

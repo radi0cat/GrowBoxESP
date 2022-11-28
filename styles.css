@@ -1,0 +1,118 @@
+<style>
+    body {
+        background-color: #f8f8f8;
+        font-family: "Verdana", "Arial", sans-serif;   
+        color: #333;
+        max-width: 860px;         
+    }
+
+    hr {
+        color: #15156e; 
+        margin-top: 0px;    
+        margin-bottom: 0px;           
+    }
+    .fixed-top {
+        display: block;
+    }
+    .navtitle {
+        font-size: 35px; 
+        font-weight: bold; 
+        text-align: center; 
+        display: block;
+    }
+    .navdata_date{
+        display: inline;
+        text-align: left;
+        font-size: 20px;
+        margin-left: 15px;
+    }
+    .navdata_time{
+        display: inline;
+        float: right;
+        font-size: 20px;
+        margin-right: 15px;
+    }
+    .category {
+        font-size: 30px;
+        font-weight: bold;
+        display: block; 
+        margin-bottom: 15px;
+        margin-top: 10px;           
+    }
+    .sensor-data {
+        display: block;     
+    }
+    .switch {
+      position: relative;
+      float: right;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    .data {
+      font-size: 25px;
+      text-align: left;
+      margin: 10px;
+      padding-right: 10px;
+    }
+
+    .switch input { 
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      -webkit-transition: .4s;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+
+    input:focus + .slider {
+      box-shadow: 0 0 1px #2196F3;
+    }
+
+    input:checked + .slider:before {
+      -webkit-transform: translateX(26px);
+      -ms-transform: translateX(26px);
+      transform: translateX(26px);
+    }
+
+    /* Rounded sliders */
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+    .slide-container{
+        background-color: green;
+        padding: 0px;
+        margin: 0px;
+        width: 90%;
+    }
+</style>
