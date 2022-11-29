@@ -4,7 +4,8 @@ except:
     import socket
 
 import json
-from machine import RTC
+from dht import DHT22
+from machine import Pin, Timer, RTC
 
 import gc
 
@@ -14,7 +15,15 @@ s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 s.bind(('', 80))
 s.listen(1)
 
+# Create real time clock object
 rtc = RTC()
+
+# Create DHT22 sensor object
+temp_sensor = DHT22(Pin(23))
+
+# Initiate termo timer
+thermo_timer = Timer(1)
+
 
 
 def web_page():
@@ -34,6 +43,7 @@ def read_config():
     with open('config.json', 'r') as file:
         data = json.load(file)
         data.update(current_datetime())
+        data.update(receive_temperature_and_humidity())
     return data
 
 
@@ -72,7 +82,6 @@ def current_datetime():
 
 
 def change_datetime(obj):
-    #   "28/11/2022, 22:53:29"
     y = int(obj[7:11])
     m = int(obj[4:6])
     d = int(obj[1:3])
@@ -81,6 +90,17 @@ def change_datetime(obj):
     sc = int(obj[19:-1])
     rtc.datetime((y, m, d, 0, h, mn, sc, 0))
 
+
+def receive_temperature_and_humidity():
+#    temp_sensor.measure()
+    temp = temp_sensor.temperature()
+    humid = temp_sensor.humidity()
+
+    return {"sensors": {"temperature": '%3.1f' % temp, "humidity": '%3.1f' % humid}}
+
+
+temp_sensor.measure()
+thermo_timer.init(period=5000, mode=Timer.PERIODIC, callback=lambda t:temp_sensor.measure())
 
 while True:
     # Socket accept()
@@ -103,7 +123,6 @@ while True:
         write_config(obj)
 
         response = read_config()
-
         conn.send('HTTP/1.1 200 OK\n')
         conn.send('Content-Type: application/json\n')
         conn.send('Connection: close\n\n')
