@@ -57,12 +57,12 @@
                     resolve(xhr.response);
                     receiveData = xhr.response;
                     // Date and time
-                    document.getElementById("day").innerHTML = `${receiveData.day}`;
-                    document.getElementById("month").innerHTML = `${receiveData.month}`;
-                    document.getElementById("year").innerHTML = `${receiveData.year}`;
-                    document.getElementById("hours").innerHTML = `${receiveData.hours}`;
-                    document.getElementById("minutes").innerHTML = `${receiveData.minutes}`;
-                    document.getElementById("seconds").innerHTML = `${receiveData.seconds}`;
+                    document.getElementById("day").innerHTML = `${receiveData.date_time.day}`;
+                    document.getElementById("month").innerHTML = `${receiveData.date_time.month}`;
+                    document.getElementById("year").innerHTML = `${receiveData.date_time.year}`;
+                    document.getElementById("hours").innerHTML = `${receiveData.date_time.hours}`;
+                    document.getElementById("minutes").innerHTML = `${receiveData.date_time.minutes}`;
+                    document.getElementById("seconds").innerHTML = `${receiveData.date_time.seconds}`;
                     // Temperature and humidity
                     // State stage and watering
                     document.getElementById("water").innerHTML = `Watering per Day: ${receiveData.water}`;
@@ -81,6 +81,10 @@
             sendRequest('POST', '/post_data', sendData)
                 .then(sendData = {})
                 .catch(err => console.log(err));
+        } else if (document.getElementById("year").innerHTML == 2000) {
+            dt = new Date().toLocaleString();
+            sendRequest('POST', '/change_time', dt)
+
         } else {
             sendRequest('GET', '/get_data')
                 .then(() => {
@@ -92,6 +96,5 @@
     }
 
     form.addEventListener('submit', checkState);
-    setInterval(updateData, 5000);
+    setInterval(updateData, 1000);
 </script>
-
