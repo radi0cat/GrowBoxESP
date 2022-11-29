@@ -16,13 +16,11 @@
                     document.getElementById("stage_title").innerHTML = `Growth Stage: ${value}`;
                     sendData.stage = value;
                     found0 = true;
-                    console.log(`Now ${sendData.stage} is activated`);
                     document.forms.changes[i].checked = false;
                 } else if (i > 3) {
                     document.getElementById("water").innerHTML = `Watering per Day: ${value}`;
                     sendData.water = value;
                     found1 = true;
-                    console.log(`Now ${sendData.water} is activated`);
                     document.forms.changes[i].checked = false;
                     break;
                 }
@@ -36,8 +34,6 @@
         if(!found1) {
             sendData.water = receiveData.water;
         }
-
-        console.log(sendData);
     }
 
 
@@ -64,6 +60,8 @@
                     document.getElementById("minutes").innerHTML = `${receiveData.date_time.minutes}`;
                     document.getElementById("seconds").innerHTML = `${receiveData.date_time.seconds}`;
                     // Temperature and humidity
+                    document.getElementById("temperature").innerHTML = `${receiveData.sensors.temperature}`;
+                    document.getElementById("humidity").innerHTML = `${receiveData.sensors.humidity}`;
                     // State stage and watering
                     document.getElementById("water").innerHTML = `Watering per Day: ${receiveData.water}`;
                     document.getElementById("stage_title").innerHTML = `Growth Stage: ${receiveData.stage}`;
@@ -87,10 +85,6 @@
 
         } else {
             sendRequest('GET', '/get_data')
-                .then(() => {
-                    if(Object.keys(sendData).length !== 0){
-                        console.log(`Method get, data: ${JSON.stringify(sendData)}`)
-                    }})
                 .catch(err => console.log(err));
         }
     }
