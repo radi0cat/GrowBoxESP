@@ -1,29 +1,26 @@
-try:
-    import usocket as socket
-except:
-    import socket
-
+import usocket as socket
 import json
 from dht import DHT22
-from machine import Pin, Timer, RTC
-
+from machine import Pin, Timer, RTC, PWM
 import gc
 
 gc.collect()
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind(('', 80))
-s.listen(1)
-
 # Create real time clock object
 rtc = RTC()
-
 # Create DHT22 sensor object
 temp_sensor = DHT22(Pin(23))
+# Create light relay
+light_relay = Pin(22, Pin.OUT)
+# Create thermo relay
+thermal_relay = Pin(25, Pin.OUT)
+# Create watering relay
+water_relay = Pin(2, Pin.OUT)
+# Create fan PWM channel
+fan = PWM(Pin(27), 25000)
 
-# Initiate termo timer
-thermo_timer = Timer(1)
-
+# Create light and termo timer
+light_termo_timer = Timer(-1)
 
 
 def web_page():
@@ -39,11 +36,23 @@ def web_page():
     return content
 
 
+def create_response():
+    with open('config.json', 'r') as file:
+        data = json.load(file)
+        # Add current date and time
+        data.update(current_datetime())
+        # Add temperature and humidity object
+        temp = temp_sensor.temperature()
+        humid = temp_sensor.humidity()
+        data.update({"sensors": {"temperature": '%3.1f' % temp, "humidity": '%3.1f' % humid}})
+
+    return json.dumps(data)
+
+
 def read_config():
     with open('config.json', 'r') as file:
         data = json.load(file)
-        data.update(current_datetime())
-        data.update(receive_temperature_and_humidity())
+
     return data
 
 
@@ -57,6 +66,7 @@ def write_config(obj):
         if 'stage' in obj.keys() and 'water' in obj.keys():
             data['stage'] = obj['stage']
             data['water'] = obj['water']
+            data['start_light'] = obj['start_light']
 
             with open('config.json', 'w') as out_file:
                 json.dump(data, out_file)
@@ -91,61 +101,156 @@ def change_datetime(obj):
     rtc.datetime((y, m, d, 0, h, mn, sc, 0))
 
 
-def receive_temperature_and_humidity():
-#    temp_sensor.measure()
-    temp = temp_sensor.temperature()
-    humid = temp_sensor.humidity()
+def run_server():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', 80))
+    s.listen(5)
 
-    return {"sensors": {"temperature": '%3.1f' % temp, "humidity": '%3.1f' % humid}}
+    while True:
+        # Socket accept()
+        conn, addr = s.accept()
+        print("Got connection from %s" % str(addr))
+        # Socket receive()
+        request = str(conn.recv(2048), 'utf-8')
+
+        if '/get_data' in request:
+            # Create a socket reply if web page loaded.
+            conn.send('HTTP/1.1 200 OK\n')
+            conn.send('Content-Type: application/json\n')
+            conn.send('Connection: close\n\n')
+            conn.sendall(create_response())
+
+        elif '/post_data' in request:
+            # if method is post write changes to config file.
+            obj = request.splitlines()[-1]
+            print(obj)
+            print(type(obj))
+            write_config(obj)
+            # Create a socket reply
+            conn.send('HTTP/1.1 200 OK\n')
+            conn.send('Content-Type: application/json\n')
+            conn.send('Connection: close\n\n')
+            conn.sendall(create_response())
+
+        elif '/change_time' in request:
+            change_datetime(request.splitlines()[-1])
+            # Create a socket reply.
+            conn.send('HTTP/1.1 200 OK\n')
+            conn.send('Content-Type: application/json\n')
+            conn.send('Connection: close\n\n')
+            conn.sendall(create_response())
+
+        else:
+            # Create a socket reply
+            conn.send('HTTP/1.1 200 OK\n')
+            conn.send('Content-Type: text/html\n')
+            conn.send('Connection: close\n\n')
+            conn.sendall(web_page())
+
+        conn.close()
 
 
-temp_sensor.measure()
-thermo_timer.init(period=5000, mode=Timer.PERIODIC, callback=lambda t:temp_sensor.measure())
+def control_light_temperature_humidity():    
+    obj = read_config()
 
-while True:
-    # Socket accept()
-    conn, addr = s.accept()
-    print("Got connection from %s" % str(addr))
-    # Socket receive()
-    request = str(conn.recv(1024), 'utf-8')
+    check_fan_and_termo(obj['stage'])
+    check_light(obj['start_light'])
+    check_water(obj['start_light'], obj['water'])
 
-    if '/get_data' in request:
-        # Create a socket reply
-        response = read_config()
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: application/json\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(json.dumps(response))
-
-    elif '/post_data' in request:
-        # Create a socket reply
-        obj = request.splitlines()[-1]
-        write_config(obj)
-
-        response = read_config()
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: application/json\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(json.dumps(response))
-
-    elif '/change_time' in request:
-        dt_string = request.splitlines()[-1]
-        change_datetime(dt_string)
-
-        response = read_config()
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: application/json\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(json.dumps(response))
-
-    else:
-        response = web_page()
-        # Create a socket reply
-        conn.send('HTTP/1.1 200 OK\n')
-        conn.send('Content-Type: text/html\n')
-        conn.send('Connection: close\n\n')
-        conn.sendall(response)
-
-    # Socket close
-    conn.close()
     gc.collect()
+    
+
+def check_light(start):
+    hours = []
+    start_hour = int(start.split(":")[0])
+
+    if start_hour == 5:
+        duration = 18
+    else:
+        duration = 12
+
+    for i in range(duration + 1):
+        hours.append(start_hour)
+        start_hour += 1
+        if start_hour > 23:
+            start_hour = 0
+
+    hours = tuple(hours)
+    cur_h = rtc.datetime()[4]
+
+    if cur_h in hours[:-1]:
+        light_relay.on()
+    else:
+        light_relay.off()
+
+
+def check_fan_and_termo(stage):
+    temp_sensor.measure()
+    cur_temp = temp_sensor.temperature()
+    cur_hum = temp_sensor.humidity()
+    if stage == 'Flowering':
+        min_temp = 18
+        set_hum = 40
+    else:
+        min_temp = 22
+        set_hum = 60
+
+    max_temp = 27
+    cycle = fan.duty()
+    if cur_temp > max_temp:
+        if cycle > 0:
+            cycle -= 1
+        thermal_relay.off()
+
+    elif min_temp < cur_temp < max_temp and cur_hum <= set_hum:
+        if cycle < 512:
+            cycle += 1
+        thermal_relay.on()
+
+    elif min_temp < cur_temp < max_temp and cur_hum > set_hum:
+        if cycle > 0:
+            cycle -= 1
+        thermal_relay.on()
+
+    elif cur_temp < min_temp:
+        thermal_relay.on()
+        if cycle < 512:
+            cycle += 1
+
+    fan.duty(cycle)
+
+
+def check_water(start, water):
+    start = int(start.split(":")[0])
+    if water == '1':
+        hours = (start,)
+
+    elif water == '2':
+        if start == 8:
+            hours = (start, start + 6)
+        else:
+            hours = (start, start + 9)
+
+    elif water == '3':
+        if start == 8:
+            hours = (start, start + 4, start + 8)
+        else:
+            hours = (start, start + 6, start + 12)
+    else:
+        hours = tuple()
+
+    cur_h = rtc.datetime()[4]
+    cur_m = rtc.datetime()[5]
+
+    if cur_h in hours and cur_m == 0:
+        water_relay.on()
+    else:
+        water_relay.off()
+
+
+if __name__ == '__main__':
+    temp_sensor.measure()
+    # Initiate light and thermal timer
+    light_termo_timer.init(period=5000, mode=Timer.PERIODIC, callback=lambda l: control_light_temperature_humidity())
+    run_server()
+    print('print after run server')
