@@ -31,7 +31,7 @@ def web_page():
         content = content.replace('<link rel="stylesheet" href="styles.css" type="text/css">', f.read())
 
     with open('script.js', 'r') as f:
-        content = content.replace('<script src="script.js"></script>', f.read())
+        content = content.replace('<script src="ajax_client.js"></script>', f.read())
 
     return content
 
