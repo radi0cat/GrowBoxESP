@@ -13,7 +13,7 @@
             if (document.forms.changes[i].checked) {
                 let value = document.forms.changes[i].value;
                 if (i < 4) {
-                    document.getElementById("stage_title").innerHTML = `Growth Stage: ${value}`;
+                    document.getElementById("stage_title").innerHTML = `Growth Stage: ${value}`
                     sendData.stage = value;
                     found0 = true;
                     document.forms.changes[i].checked = false;
@@ -76,6 +76,11 @@
 
     function updateData(){
         if (Object.keys(sendData).length !== 0) {
+            if (sendData.stage === "Flowering" || sendData.stage === "Pre-Flowering") {
+                sendData.start_light = "8:00";
+            } else {
+                sendData.start_light = "5:00";
+            }
             sendRequest('POST', '/post_data', sendData)
                 .then(sendData = {})
                 .catch(err => console.log(err));
