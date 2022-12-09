@@ -123,8 +123,6 @@ def run_server():
         elif '/post_data' in request:
             # if method is post write changes to config file.
             obj = request.splitlines()[-1]
-            print(obj)
-            print(type(obj))
             write_config(obj)
             # Create a socket reply
             conn.send('HTTP/1.1 200 OK\n')
