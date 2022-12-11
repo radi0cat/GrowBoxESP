@@ -30,7 +30,7 @@ def web_page():
     with open('styles.css', 'r') as f:
         content = content.replace('<link rel="stylesheet" href="styles.css" type="text/css">', f.read())
 
-    with open('script.js', 'r') as f:
+    with open('ajax_client.js', 'r') as f:
         content = content.replace('<script src="ajax_client.js"></script>', f.read())
 
     return content
